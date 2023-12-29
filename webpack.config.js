@@ -1,33 +1,27 @@
-const path = require("path");
-const nodePolyfill = require('node-polyfill-webpack-plugin');
+const path = require('path');
+const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
-  mode: "development",
-  entry: "./src/index.js",
+  mode: 'development', // 'production' или 'development'
+  entry: './src/index.js', // точка входа серверного приложения
   output: {
-    path: path.resolve(__dirname, "dist"),
-    filename: "index.js",
+    path: path.resolve(__dirname, 'dist'), // директория сборки приложения
+    filename: 'bundle.js', // имя выходного файла
   },
-  resolve: {
-    fallback: {
-      path: require.resolve("path-browserify"),
-      url: require.resolve("url/"),
-      buffer: require.resolve("buffer/"),
-      crypto: false,
-      fs: false,
-      stream: require.resolve("stream-browserify"),
-      util: require.resolve("util/"),
-      http: require.resolve("stream-http"),
-      querystring: require.resolve("querystring-es3"),
-      zlib: false,
-      os: false,
-      net: require.resolve("net-browserify"),
-      express: require.resolve("express"),
-      async_hooks: require.resolve("async_hooks"),
-      timers: require.resolve("timers-browserify"),
-    },
+  target: 'node', // указываем, что приложение предназначено для Node.js
+  externals: [nodeExternals()], // исключаем внешние зависимости
+  module: {
+    rules: [
+      {
+        test: /\.js$/, // применяем правило только к js файлам
+        exclude: /node_modules/, // исключаем node_modules из сборки
+        use: {
+          loader: 'babel-loader', // используем babel-loader для транспиляции кода ES6/ES7 в ES5
+          options: {
+            presets: ['@babel/preset-env'],
+          },
+        },
+      },
+    ],
   },
-  plugins: [
-    new nodePolyfill()
-  ]
 };
