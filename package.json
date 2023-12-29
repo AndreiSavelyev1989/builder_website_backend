@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npx nodemon src/index.js",
-    "inspect": "npx nodemon inspect src/index.js",
+    "start": "npm run dist/index.js",
+    "dev": "npx nodemon --inspect src/index.js",
     "build": "webpack"
   },
   "keywords": [],
