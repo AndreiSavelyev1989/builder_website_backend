@@ -6,20 +6,39 @@
   "scripts": {
     "start": "npx nodemon src/index.js",
     "inspect": "npx nodemon inspect src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.2",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "async_hooks": "^1.0.0",
+    "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "glob": "^10.3.10",
+    "lru-cache": "^10.1.0",
     "mongodb": "^6.3.0",
     "mongoose": "^8.0.3",
     "multer": "^1.4.5-lts.1",
+    "net-browserify": "^0.1.4",
+    "node-polyfill-webpack-plugin": "^3.0.0",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
+    "path-scurry": "^1.10.1",
+    "querystring-es3": "^0.2.1",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "timers-browserify": "^2.0.12",
+    "url": "^0.11.3",
+    "util": "^0.12.5",
     "uuid": "^9.0.1"
   }
 }
