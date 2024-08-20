@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
 
 const saltRounds = 10; // Количество раундов соли для bcrypt
 
@@ -57,6 +58,7 @@ app.post("/register", async (req, res) => {
     const newUser = new User({
       username,
       password: hashedPassword,
+      profile_image: null,
       lastLogin: new Date(),
     });
     await newUser.save();
@@ -75,18 +77,22 @@ app.post("/register", async (req, res) => {
 // Роут для логина пользователя
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
-
   try {
     const user = await User.findOne({ username });
-
     if (user && (await bcrypt.compare(password, user.password))) {
-      // Обновляем время последнего входа
       user.lastLogin = new Date();
       await user.save();
+        
+      const token = jwt.sign(
+        { userId: user._id, username: user.username },
+        process.env.JWT_SECRET,
+        { expiresIn: '3h' }
+      );
 
       res.status(200).json({
         message: "Logged in successfully",
-        user: { username, lastLogin: user.lastLogin },
+        token: token,
+        user: { username, lastLogin: user.lastLogin }
       });
     } else {
       res.status(401).json({ message: "Invalid username or password" });
