@@ -3,7 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const cors = require("cors");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 const saltRounds = 10; // Количество раундов соли для bcrypt
 
@@ -11,8 +11,8 @@ const app = express();
 app.use(express.json());
 
 const allowedDomains = [
-  'http://localhost:3000',
-  'https://andreisavelyev1989.github.io/bilder_website',
+  "http://localhost:3000",
+  "https://andreisavelyev1989.github.io/bilder_website",
 ];
 
 const corsOptions = {
@@ -20,10 +20,10 @@ const corsOptions = {
     if (!origin || allowedDomains.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("Not allowed by CORS"));
     }
   },
-  optionsSuccessStatus: 200 // некоторые старые браузеры (IE11, разные SmartTV) хантрят 204 как ошибку
+  optionsSuccessStatus: 200, // некоторые старые браузеры (IE11, разные SmartTV) хантрят 204 как ошибку
 };
 
 app.use(cors(corsOptions));
@@ -41,7 +41,8 @@ mongoose
 
 // Определите схему пользователя
 const userSchema = new mongoose.Schema({
-  username: { type: String, unique: true },
+  email: { type: String, unique: true },
+  username: String,
   password: String,
   profile_image: { type: String, default: null },
   lastLogin: Date,
@@ -53,10 +54,11 @@ const User = mongoose.model("User", userSchema);
 // Роут для регистрации нового пользователя
 app.post("/register", async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, saltRounds); // Хэшируем пароль
+    const { email, username, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     const newUser = new User({
+      email,
       username,
       password: hashedPassword,
       profile_image,
@@ -66,7 +68,7 @@ app.post("/register", async (req, res) => {
 
     res.status(201).json({
       message: "User registered successfully",
-      user: { username, lastLogin: newUser.lastLogin },
+      user: { email, username, lastLogin: newUser.lastLogin },
     });
   } catch (error) {
     res
@@ -77,26 +79,26 @@ app.post("/register", async (req, res) => {
 
 // Роут для логина пользователя
 app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
   try {
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email });
     if (user && (await bcrypt.compare(password, user.password))) {
       user.lastLogin = new Date();
       await user.save();
-        
+
       const token = jwt.sign(
-        { userId: user._id, username: user.username },
+        { userId: user._id, email: user.email },
         process.env.JWT_SECRET,
-        { expiresIn: '3h' }
+        { expiresIn: "3h" }
       );
 
       res.status(200).json({
         message: "Logged in successfully",
         token: token,
-        user: { username, lastLogin: user.lastLogin }
+        user: { email, lastLogin: user.lastLogin },
       });
     } else {
-      res.status(401).json({ message: "Invalid username or password" });
+      res.status(401).json({ message: "Invalid email or password" });
     }
   } catch (err) {
     res.status(500).json({ message: "Error logging in", error: err.message });
