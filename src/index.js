@@ -2,11 +2,30 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const cors = require("cors");
 
 const saltRounds = 10; // Количество раундов соли для bcrypt
 
 const app = express();
 app.use(express.json());
+
+const allowedDomains = [
+  'http://localhost:3000',
+  'https://andreisavelyev1989.github.io/bilder_website',
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedDomains.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  optionsSuccessStatus: 200 // некоторые старые браузеры (IE11, разные SmartTV) хантрят 204 как ошибку
+};
+
+app.use(cors(corsOptions));
 
 const port = process.env.PORT || 5000;
 
@@ -42,12 +61,10 @@ app.post("/register", async (req, res) => {
     });
     await newUser.save();
 
-    res
-      .status(201)
-      .json({
-        message: "User registered successfully",
-        user: { username, lastLogin: newUser.lastLogin },
-      });
+    res.status(201).json({
+      message: "User registered successfully",
+      user: { username, lastLogin: newUser.lastLogin },
+    });
   } catch (error) {
     res
       .status(500)
@@ -67,12 +84,10 @@ app.post("/login", async (req, res) => {
       user.lastLogin = new Date();
       await user.save();
 
-      res
-        .status(200)
-        .json({
-          message: "Logged in successfully",
-          user: { username, lastLogin: user.lastLogin },
-        });
+      res.status(200).json({
+        message: "Logged in successfully",
+        user: { username, lastLogin: user.lastLogin },
+      });
     } else {
       res.status(401).json({ message: "Invalid username or password" });
     }
