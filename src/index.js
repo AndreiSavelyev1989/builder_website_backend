@@ -43,6 +43,7 @@ mongoose
 const userSchema = new mongoose.Schema({
   username: { type: String, unique: true },
   password: String,
+  profile_image: { type: String, default: null },
   lastLogin: Date,
 });
 
@@ -58,7 +59,7 @@ app.post("/register", async (req, res) => {
     const newUser = new User({
       username,
       password: hashedPassword,
-      profile_image: null,
+      profile_image,
       lastLogin: new Date(),
     });
     await newUser.save();
