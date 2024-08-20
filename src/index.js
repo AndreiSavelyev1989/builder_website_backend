@@ -61,7 +61,6 @@ app.post("/register", async (req, res) => {
       email,
       username,
       password: hashedPassword,
-      profile_image,
       lastLogin: new Date(),
     });
     await newUser.save();
