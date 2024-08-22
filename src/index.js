@@ -13,7 +13,7 @@ app.use(express.json());
 
 const allowedDomains = [
   "http://localhost:3000",
-  "https://andreisavelyev1989.github.io/bilder_website",
+  "https://andreisavelyev1989.github.io",
 ];
 
 const corsOptions = {
