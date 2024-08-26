@@ -78,6 +78,16 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
+const commentSchema = new mongoose.Schema(
+  {
+    email: { type: String, required: true },
+    text: { type: String, required: true },
+  },
+  { timestamps: true }
+);
+
+const Comment = mongoose.model("Comment", commentSchema);
+
 app.post("/register", async (req, res) => {
   try {
     const { email, username, password } = req.body;
@@ -138,7 +148,6 @@ app.post("/google-login", async (req, res) => {
     const { email, name, picture } = response.data;
 
     let user = await User.findOne({ email });
-    console.log(response);
 
     if (!user) {
       const newUser = new User({
@@ -207,14 +216,14 @@ app.get("/auth", authenticateToken, async (req, res) => {
 //       if (!user) {
 //           return res.status(404).json({ message: "User not found" });
 //       }
-  
+
 //       // Обновляем данные пользователя
 //       user.username = req.body.username || user.username;
 //       user.profile_image = req.file ? req.file.path : user.profile_image;
 //       user.lastLogin = new Date(); // обновить время последнего входа
-  
+
 //       await user.save();
-  
+
 //       res.status(200).json({
 //           message: "User updated successfully",
 //           user: {
@@ -233,35 +242,37 @@ app.get("/auth", authenticateToken, async (req, res) => {
 
 app.put("/update-profile", authenticateToken, async (req, res) => {
   try {
-      const user = await User.findById(req.user.userId);
-      if (!user) {
-          return res.status(404).json({ message: "User not found" });
-      }
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-      const { username, profile_image } = req.body;
+    const { username, profile_image } = req.body;
 
-      user.username = username || user.username;
-      
-      if (profile_image && isValidHttpUrl(profile_image)) {
-          user.profile_image = profile_image;
-      } else if (profile_image) {
-          return res.status(400).json({ message: "Invalid profile image URL" });
-      }
+    user.username = username || user.username;
 
-      user.lastLogin = new Date();
-      await user.save();
+    if (profile_image && isValidHttpUrl(profile_image)) {
+      user.profile_image = profile_image;
+    } else if (profile_image) {
+      return res.status(400).json({ message: "Invalid profile image URL" });
+    }
 
-      res.status(200).json({
-          message: "User updated successfully",
-          user: {
-              email: user.email,
-              username: user.username,
-              lastLogin: user.lastLogin,
-              profile_image: user.profile_image,
-          }
-      });
+    user.lastLogin = new Date();
+    await user.save();
+
+    res.status(200).json({
+      message: "User updated successfully",
+      user: {
+        email: user.email,
+        username: user.username,
+        lastLogin: user.lastLogin,
+        profile_image: user.profile_image,
+      },
+    });
   } catch (error) {
-      res.status(500).json({ message: "Failed to update user", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to update user", error: error.message });
   }
 });
 
@@ -269,12 +280,65 @@ function isValidHttpUrl(string) {
   let url;
 
   try {
-      url = new URL(string);
+    url = new URL(string);
   } catch (_) {
-      return false;
+    return false;
   }
 
   return url.protocol === "http:" || url.protocol === "https:";
 }
+
+//comment
+app.post("/comment", authenticateToken, async (req, res) => {
+  const { text } = req.body;
+  const email = req.user.email;
+
+  if (!text) {
+    return res.status(400).json({ message: "Text is required" });
+  }
+
+  try {
+    const newComment = new Comment({
+      email,
+      text,
+    });
+    await newComment.save();
+    res.status(201).json(newComment);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/comments", async (req, res) => {
+  try {
+    const commentsWithUsers = await Comment.aggregate([
+      {
+        $lookup: {
+          from: "users",
+          localField: "email",
+          foreignField: "email",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user",
+      },
+      {
+        $project: {
+          email: 1,
+          text: 1,
+          "user.username": 1,
+          "user.profile_image": 1,
+        },
+      },
+    ]);
+    res.status(200).json(commentsWithUsers);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch comments with user data",
+      error: error.message,
+    });
+  }
+});
 
 app.listen(port, () => console.log(`Server running on port ${port}`));
