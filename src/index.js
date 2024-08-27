@@ -81,7 +81,13 @@ const User = mongoose.model("User", userSchema);
 const commentSchema = new mongoose.Schema(
   {
     email: { type: String, required: true },
-    text: { type: String, required: true },
+    rating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
+    },
+    text: { type: String, required: false },
   },
   { timestamps: true }
 );
@@ -290,17 +296,18 @@ function isValidHttpUrl(string) {
 
 //comment
 app.post("/comment", authenticateToken, async (req, res) => {
-  const { text } = req.body;
+  const { text, rating } = req.body;
   const email = req.user.email;
 
-  if (!text) {
-    return res.status(400).json({ message: "Text is required" });
+  if (rating === undefined) {
+    return res.status(400).json({ message: "Rating is required" });
   }
 
   try {
     const newComment = new Comment({
       email,
       text,
+      rating,
     });
     await newComment.save();
     res.status(201).json(newComment);
@@ -327,8 +334,16 @@ app.get("/comments", async (req, res) => {
         $project: {
           email: 1,
           text: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          rating: 1,
           "user.username": 1,
           "user.profile_image": 1,
+        },
+      },
+      {
+        $sort: {
+          createdAt: -1,
         },
       },
     ]);
