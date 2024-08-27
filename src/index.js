@@ -317,6 +317,11 @@ app.post("/comment", authenticateToken, async (req, res) => {
 });
 
 app.get("/comments", async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10;
+
+  const skip = (page - 1) * pageSize;
+
   try {
     const commentsWithUsers = await Comment.aggregate([
       {
@@ -346,8 +351,14 @@ app.get("/comments", async (req, res) => {
           createdAt: -1,
         },
       },
+      { $skip: skip },
+      { $limit: pageSize },
     ]);
-    res.status(200).json(commentsWithUsers);
+    res.status(200).json({
+      currentPage: page,
+      pageSize: pageSize,
+      comments: commentsWithUsers,
+    });
   } catch (error) {
     res.status(500).json({
       message: "Failed to fetch comments with user data",
