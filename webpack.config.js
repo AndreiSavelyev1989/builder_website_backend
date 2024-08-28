@@ -3,20 +3,20 @@ const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   mode: 'development', // 'production' или 'development'
-  entry: './src/index.js', // точка входа серверного приложения
+  entry: './src/server.js', // entry point to the server app
   output: {
-    path: path.resolve(__dirname, 'dist'), // директория сборки приложения
-    filename: 'bundle.js', // имя выходного файла
+    path: path.resolve(__dirname, 'dist'), // app build directory
+    filename: 'bundle.js', // output file name
   },
-  target: 'node', // указываем, что приложение предназначено для Node.js
-  externals: [nodeExternals()], // исключаем внешние зависимости
+  target: 'node', // app is intended for Node.js
+  externals: [nodeExternals()], // exclude external dependencies
   module: {
     rules: [
       {
-        test: /\.js$/, // применяем правило только к js файлам
-        exclude: /node_modules/, // исключаем node_modules из сборки
+        test: /\.js$/, // apply the rule only to js files
+        exclude: /node_modules/, // exclude node_modules from build
         use: {
-          loader: 'babel-loader', // используем babel-loader для транспиляции кода ES6/ES7 в ES5
+          loader: 'babel-loader', // use babel-loader for transpile code from ES6/ES7 to ES5
           options: {
             presets: ['@babel/preset-env'],
           },

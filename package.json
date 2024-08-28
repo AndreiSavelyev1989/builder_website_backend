@@ -2,10 +2,9 @@
   "name": "builder_website_backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "npm run dist/index.js",
-    "dev": "npx nodemon --inspect src/index.js",
+    "dev": "npx nodemon --inspect src/server.js",
     "build": "webpack --config webpack.config.js"
   },
   "keywords": [],
