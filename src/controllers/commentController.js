@@ -16,7 +16,30 @@ module.exports = {
         rating,
       });
       await newComment.save();
-      res.status(201).json(newComment);
+      res.status(201).json({newComment, message: "New comment created successfully!"});
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  deleteComment: async (req, res) => {
+    try {
+      const commentId = req.params.id;
+      const comment = await Comment.findById(commentId);
+
+      if (!comment) {
+        return res.status(404).json({ message: "Comment not found" });
+      }
+
+      if (req.user.email !== comment.email) {
+        return res
+          .status(403)
+          .json({ message: "You are not authorized to delete this comment" });
+      }
+
+      await Comment.findByIdAndDelete(commentId);
+
+      res.status(200).json({ message: "Comment deleted successfully" });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
